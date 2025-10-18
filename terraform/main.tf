@@ -18,6 +18,12 @@ provider "aws" {
 
 locals {
   workspace_config = {
+    default = {
+      vpc_cidr           = "10.0.0.0/16"
+      instance_count     = 1
+      ssh_access_cidr    = "0.0.0.0/0"
+      environment_tag    = "dev"
+    }
     dev = {
       vpc_cidr           = "10.0.0.0/16"
       instance_count     = 1

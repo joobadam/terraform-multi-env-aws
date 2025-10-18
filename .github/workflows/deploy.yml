@@ -30,9 +30,15 @@ jobs:
         run: terraform init
         working-directory: ./terraform
 
+      - name: Verify Workspace
+        run: terraform workspace show
+        working-directory: ./terraform
+
       - name: Select or Create Workspace
         run: |
-          terraform workspace new dev 2>/dev/null || terraform workspace select dev
+          terraform workspace new ${{ github.event.inputs.environment }} || true
+          terraform workspace select ${{ github.event.inputs.environment }}
+          terraform workspace show
         working-directory: ./terraform
 
       - name: Terraform Plan
