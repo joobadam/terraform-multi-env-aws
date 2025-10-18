@@ -27,26 +27,12 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
-        run: terraform init
+        run: terraform init -backend=false
         working-directory: ./terraform
 
-      - name: Verify Workspace
-        run: terraform workspace show
+      - name: Terraform Validate
+        run: terraform validate
         working-directory: ./terraform
-
-      - name: Select or Create Workspace
-        run: |
-          terraform workspace new ${{ github.event.inputs.environment }} || true
-          terraform workspace select ${{ github.event.inputs.environment }}
-          terraform workspace show
-        working-directory: ./terraform
-
-      - name: Terraform Plan
-        run: terraform plan
-        working-directory: ./terraform
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   terraform-apply:
     runs-on: ubuntu-latest
@@ -65,7 +51,10 @@ jobs:
 
       - name: Select or Create Workspace
         run: |
-          terraform workspace select ${{ github.event.inputs.environment }} || terraform workspace new ${{ github.event.inputs.environment }}
+          terraform workspace new ${{ github.event.inputs.environment }} 2>/dev/null || true
+          terraform workspace select ${{ github.event.inputs.environment }}
+          echo "Active workspace:"
+          terraform workspace show
         working-directory: ./terraform
 
       - name: Terraform Plan
