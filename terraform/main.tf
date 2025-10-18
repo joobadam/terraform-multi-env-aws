@@ -38,7 +38,7 @@ locals {
     }
   }
   
-  config = local.workspace_config[terraform.workspace]
+  config = lookup(local.workspace_config, terraform.workspace, local.workspace_config["dev"])
   
   common_tags = {
     Environment = local.config.environment_tag
