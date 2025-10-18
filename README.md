@@ -1,118 +1,118 @@
 # Terraform Multi-Environment AWS Infrastructure
 
-Többkörnyezetes AWS infrastruktúra Terraform workspace-ekkel demonstrációs portfolio projekt.
+A multi-environment AWS infrastructure demonstration project using Terraform workspaces.
 
-## Architektúra
+## Architecture
 
-A projekt egy egyszerű, többkörnyezetes AWS infrastruktúrát hoz létre:
+This project creates a simple, multi-environment AWS infrastructure:
 
-- **VPC**: Környezet-specifikus CIDR blokkokkal
-- **Subnets**: 2 public subnet minden VPC-ben
-- **Internet Gateway**: Internet hozzáférés
-- **Route Tables**: Routing konfiguráció
-- **Security Groups**: Környezet-specifikus biztonsági szabályok
-- **IAM Role**: EC2 instance-ekhez (SSM access, S3 read-only)
-- **EC2 Instances**: t2.micro instance-ek környezet-specifikus darabszámmal
-- **S3 Bucket**: Környezet-specifikus névvel, titkosítással és verziózással
+- **VPC**: Environment-specific CIDR blocks
+- **Subnets**: 2 public subnets in each VPC
+- **Internet Gateway**: Internet access
+- **Route Tables**: Routing configuration
+- **Security Groups**: Environment-specific security rules
+- **IAM Role**: For EC2 instances (SSM access, S3 read-only)
+- **EC2 Instances**: t3.micro instances with environment-specific count
+- **S3 Bucket**: Environment-specific naming with encryption and versioning
 
-## Környezetek Különbségei
+## Environment Differences
 
-| Környezet | VPC CIDR | Instance Darab | SSH Hozzáférés | Security Group |
-|-----------|----------|----------------|----------------|----------------|
-| **dev**   | 10.0.0.0/16 | 1x t2.micro | Bárhonnan (0.0.0.0/0) | Engedékenyebb |
-| **stage** | 10.1.0.0/16 | 1x t2.micro | Korlátozott IP-ről | Közepesen szigorú |
-| **prod**  | 10.2.0.0/16 | 2x t2.micro | Csak VPN/bastion-ről | Szigorú |
+| Environment | VPC CIDR | Instance Count | SSH Access | Security Group |
+|-------------|----------|----------------|------------|----------------|
+| **dev**     | 10.0.0.0/16 | 1x t3.micro | From anywhere (0.0.0.0/0) | Permissive |
+| **stage**   | 10.1.0.0/16 | 1x t3.micro | From specific IP | Moderately strict |
+| **prod**    | 10.2.0.0/16 | 2x t3.micro | From VPN/bastion only | Strict |
 
-## Előfeltételek
+## Prerequisites
 
-- AWS fiók aktív Free Tier-el
-- Terraform >= 1.0 telepítve
-- GitHub fiók
-- AWS CLI konfigurálva (opcionális)
+- AWS account with active Free Tier
+- Terraform >= 1.0 installed
+- GitHub account
+- AWS CLI configured (optional)
 
-## Lokális Használat
+## Local Usage
 
-### 1. Klónozás és beállítás
+### 1. Clone and Setup
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/joobadam/terraform-multi-env-aws.git
 cd terraform-multi-env-aws
 ```
 
-### 2. Terraform változók beállítása
+### 2. Configure Terraform Variables
 
 ```bash
 cp terraform/terraform.tfvars.example terraform/terraform.tfvars
-# Szerkeszd a terraform.tfvars fájlt a saját értékeiddel
+# Edit terraform.tfvars with your own values
 ```
 
-### 3. Terraform inicializálás
+### 3. Initialize Terraform
 
 ```bash
 cd terraform
 terraform init
 ```
 
-### 4. Workspace kezelés
+### 4. Workspace Management
 
 ```bash
-# Workspace-ek listázása
+# List workspaces
 terraform workspace list
 
-# Új workspace létrehozása
+# Create new workspaces
 terraform workspace new dev
 terraform workspace new stage
 terraform workspace new prod
 
-# Workspace váltás
+# Switch workspace
 terraform workspace select dev
 ```
 
-### 5. Infrastruktúra létrehozása
+### 5. Create Infrastructure
 
 ```bash
-# Plan futtatása
+# Run plan
 terraform plan
 
-# Apply futtatása
+# Apply changes
 terraform apply
 ```
 
-### 6. Output értékek megtekintése
+### 6. View Output Values
 
 ```bash
 terraform output
 ```
 
-## GitHub Actions Használat
+## GitHub Actions Usage
 
-### 1. GitHub Secrets beállítása
+### 1. Configure GitHub Secrets
 
-A repository Settings > Secrets and variables > Actions menüben add hozzá:
+In repository Settings > Secrets and variables > Actions, add:
 
 - `AWS_ACCESS_KEY_ID`: AWS access key ID
 - `AWS_SECRET_ACCESS_KEY`: AWS secret access key
 
-### 2. Workflow futtatása
+### 2. Run Workflow
 
-- **Automatikus**: Minden push a main ágra (terraform/** path-ok változásakor) futtatja a plan-t
-- **Manuális**: Repository Actions menüben válaszd ki a "Terraform Deploy" workflow-t és futtasd a kívánt környezettel
+- **Automatic**: Every push to main branch (when terraform/** paths change) runs plan
+- **Manual**: Go to repository Actions tab, select "Terraform Deploy" workflow and run with desired environment
 
-## Költségek
+## Costs
 
-Ez a projekt kizárólag AWS Free Tier resource-okat használ:
+This project uses only AWS Free Tier resources:
 
-- **EC2**: t2.micro instance-ek (750 óra/hó ingyenes)
-- **S3**: Standard storage (5GB ingyenes)
-- **VPC**: Ingyenes
-- **IAM**: Ingyenes
-- **CloudWatch**: Alapvető monitoring ingyenes
+- **EC2**: t3.micro instances (750 hours/month free)
+- **S3**: Standard storage (5GB free)
+- **VPC**: Free
+- **IAM**: Free
+- **CloudWatch**: Basic monitoring free
 
-A projekt teljesen ingyenesen futtatható Free Tier keretein belül.
+The project can be run completely free within Free Tier limits.
 
 ## Cleanup
 
-Infrastruktúra törlése:
+To destroy infrastructure:
 
 ```bash
 cd terraform
@@ -120,27 +120,27 @@ terraform workspace select <environment>
 terraform destroy
 ```
 
-Minden környezet törléséhez ismételd meg a fenti lépéseket minden workspace-szel.
+Repeat the above steps for each workspace to clean up all environments.
 
-## Projekt Struktúra
+## Project Structure
 
 ```
 terraform-multi-env-aws/
 ├── terraform/
-│   ├── main.tf                    # Fő infrastruktúra
-│   ├── variables.tf               # Változók
-│   ├── outputs.tf                 # Kimeneti értékek
-│   ├── backend.tf                 # State backend konfiguráció
-│   └── terraform.tfvars.example   # Példa változó fájl
+│   ├── main.tf                    # Main infrastructure
+│   ├── variables.tf               # Variables
+│   ├── outputs.tf                 # Output values
+│   ├── backend.tf                 # State backend configuration
+│   └── terraform.tfvars.example   # Example variable file
 ├── .github/workflows/
 │   └── deploy.yml                 # GitHub Actions workflow
-└── README.md                      # Dokumentáció
+└── README.md                      # Documentation
 ```
 
 ## License
 
-MIT License - részletek a LICENSE fájlban.
+MIT License - see LICENSE file for details.
 
-## Hozzájárulás
+## Contributing
 
-Ez egy demonstrációs portfolio projekt. Feedback és javaslatok szívesen fogadottak!
+This is a demonstration portfolio project. Feedback and suggestions are welcome!
